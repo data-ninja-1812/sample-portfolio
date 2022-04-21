@@ -1,0 +1,12 @@
+certifi
+numpy
+pandas
+psycopg2==2.7.1
+pycryptodome
+pymssql
+python-dateutil
+pytz
+schedule
+six
+SQLAlchemy
+teradatasqlalchemy

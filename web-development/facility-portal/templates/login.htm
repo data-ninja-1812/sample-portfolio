@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta http-equiv="refresh" content="86400">
+    <title>Facility Master Portal</title>
+
+    <link href="static/css/neutron.css" rel="stylesheet">
+
+</head>
+
+<body>
+    <noscript><strong>We're sorry but this site doesn't work properly without JavaScript enabled. Please enable it to
+            continue.</strong></noscript>
+
+    <div style="height: 100vw;">
+        <!-- TOPNAV BEGIN -->
+        <nav class="neu-topnav" role="navigation">
+            <div class="neu-topnav__compact">
+                <p class="neu-text--product">Facility Master</p>
+            </div>
+        </nav>
+        <!-- TOPNAV END -->
+
+        <!-- LOGIN FORM BEGIN -->
+        <div class="neu-login__simple">
+            <div class="neu-login">
+                <center>
+                    <h2>Facility Master</h2>
+                </center>
+                </br>
+                <center>
+                    <p>{{ message }}</p>
+                </center>
+                </br>
+                <form action='login' method='POST'>
+                    <input type="hidden" name="next" value={{ next }}>
+                    <div class="neu-input neu-margin--bottom-10">
+                        <label for="username" class="neu-input__label">HCA 3-4 ID</label>
+                        <input class="neu-input__field" type="text" name="username" aria-disabled="false" id="username">
+                    </div>
+                    <br>
+                    <div class="neu-input neu-margin--vert-10">
+                        <label for="password" class="neu-input__label">Network Password</label>
+                        <input class="neu-input__field" type="password" name="password" aria-disabled="false"
+                            id="password">
+                    </div>
+
+                    <div class="neu-margin--horiz-auto">
+                        <center>
+                            <button type=submit value=Login class="neu-button--primary neu-button neu-button--raised">
+                                Login
+                            </button>
+                        </center>
+                </form>
+            </div>
+        </div>
+        <!-- LOGIN FORM END -->
+    </div>
+    </div>
+
+    <!--
+    <div id="app">
+        <div id="auth-view">
+            <img src="./static/img/HCA_logo_w+orange.png" alt="hca logo"
+                style="position:absolute;left:20px;top:22.4px;width:205px">
+            <h2>Facility Master</h2>
+            <a style="color: white !important; font-size: 20px !important">{{ message }}</a>
+            </br></br>
+            <form action='login' method='POST'>
+                <div>
+                    <label for="username">3-4ID</label>
+                    <input type="text" name="username">
+                </div>
+                <div>
+                    <label for="password">Network Password</label>
+                    <input type="password" name="password">
+                </div>
+                <input type="hidden" name="next" value={{ next }}>
+                <button type=submit value=Login>Log In</button>
+            </form>
+        </div>
+    </div>
+    -->
+</body>
+<script src="./js/neutron.js"></script>
+
+</html>

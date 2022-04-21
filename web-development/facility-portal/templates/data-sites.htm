@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Facility Master Portal</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta charset="utf-8">
+
+    <link href="static/css/neutron.css" rel="stylesheet">
+
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator_simple.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.8.4/dist/js/tabulator.min.js"></script>
+
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        #data-table {
+            position: fixed;
+            top: 3.75rem;
+            bottom: 0px;
+            width: 100%;
+        }
+
+        .column-group {
+            text-align: center !important;
+        }
+
+        .column-border-left {
+            border-left-width: 3px !important;
+            border-left-color: slategray !important;
+        }
+
+        .column-border-right {
+            border-right-width: 3px !important;
+            border-right-color: slategray !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id='home'>
+        <!-- Header -->
+
+        <!-- TOPNAV BEGIN -->
+        <nav class="neu-topnav" role="navigation">
+            <div class="neu-topnav__compact">
+                <p class="neu-text--product">Facility Master</p>
+                <!-- Tab Links -->
+                <ul class="neu-tablist neu-margin--left-30">
+                    <li class="neu-tablist__tab neu-tablist__tab--dark" role="tab" aria-selected="false"
+                        aria-controls="panel-name1" id="tab-name1">
+                        <span><a href="/?site=mapSites">Site Map</a></span>
+                    </li>
+                    <li class="neu-tablist__tab neu-tablist__tab--dark neu-tablist__tab--dark-active" role="tab"
+                        aria-selected="false" aria-controls="panel-name2" id="tab-name2">
+                        <span><a href="#">Site Data</a></span>
+                    </li>
+                    <li class="neu-tablist__tab neu-tablist__tab--dark" role="tab" aria-selected="false"
+                        aria-controls="panel-name1" id="tab-name1">
+                        <span><a href="/?site=dataUnits">Unit Data</a></span>
+                    </li>
+                    <li class="neu-tablist__tab neu-tablist__tab--dark" role="tab" aria-selected="false"
+                        aria-controls="panel-name3" id="tab-name3">
+                        <span><a href="https://alation.medcity.net/article/117/edg-facility-master"
+                                target="_blank">Documentation</a></span>
+                    </li>
+                    <li class="neu-tablist__tab neu-tablist__tab--dark" role="tab" aria-selected="false"
+                        aria-controls="panel-name4" id="tab-name4">
+                        <span><a href="http://xrdcwpwebrdm01a.hca.corpad.net:8080/rdmFACILITY/"
+                                target="_blank">Admin</a></span>
+                    </li>
+
+                </ul>
+                <!-- End Tabs -->
+                <!-- User Controls -->
+                <div class="neu-user-controls neu-margin--left-auto">
+                    <span class="neu-text--white neu-margin--left-20">
+                        <a href="#"
+                            onclick='table.download("csv", "facility_master_sites_{{ date.today() }}.csv", {delimiter:","});'>Download
+                            Data</a>
+                    </span>
+                    <span class="neu-text--white neu-margin--left-20">
+                        <a href="/logout">Logout ({{ username }})</a>
+                    </span>
+                </div>
+            </div>
+        </nav>
+        <!-- TOPNAV END -->
+
+        <div id="data-table"></div>
+
+    </div>
+
+    <script>
+
+        var server_address = location.origin;
+
+        // Get Location Data
+
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("GET", server_address + "/api/sites/", false);
+        xhttp.send();
+        var response = JSON.parse(xhttp.responseText);
+
+        var tabledata = response;
+
+        //create Tabulator on DOM element with id "location-table"
+        var table = new Tabulator("#data-table", {
+            // height:770,
+            data: tabledata, //assign data to table
+            layout: "fitColumns", //fit columns to width of table (optional)
+            movableColumns: true,
+            columns: [ //Define Table Columns
+                {
+                    title: "Identifiers",
+                    cssClass: "column-group column-border-left column-border-right",
+                    // frozen:true,
+                    columns: [
+                        { title: "Site Code", field: "site_code", width: 100, headerFilter: true },
+                        { title: "Parent</br>Site", field: "parent_site_code", width: 100, headerFilter: true },
+                        { title: "<i>COID</i>", field: "coid", width: 80, headerFilter: true }
+                    ]
+                },
+                {
+                    title: "Facility Master Sites",
+                    cssClass: "column-group column-border-left column-border-right",
+                    columns: [
+                        { title: "Site Type", field: "purpose_type_name", width: 200, headerFilter: true },
+                        { title: "Operating</br>Status", field: "operating_status_name", width: 110, headerFilter: true },
+                        { title: "Site Name", field: "site_name", width: 300, headerFilter: true },
+                        { title: "Short Name", field: "site_short_name", width: 250, headerFilter: true },
+                        { title: "Street Address 1", field: "street_addr_1", width: 220, headerFilter: true },
+                        { title: "Street Address 2", field: "street_addr_2", width: 150, headerFilter: true },
+                        { title: "City", field: "city", width: 120, headerFilter: true },
+                        { title: "County", field: "county", width: 120, headerFilter: true },
+                        { title: "State</br>Code", field: "state_code", width: 80, headerFilter: true },
+                        { title: "Postal</br>Code", field: "postal_code", width: 80, headerFilter: true },
+                        { title: "Latitude", field: "geographic_latitude", width: 120, headerFilter: true },
+                        { title: "Longitude", field: "geographic_longitude", width: 120, headerFilter: true },
+                        { title: "Timezone", field: "time_zone_name", width: 150, headerFilter: true },
+                        { title: "Effective Timestamp", field: "effective_date_time", width: 180, headerFilter: true }
+                    ]
+                },
+                {
+                    title: "Company Master",
+                    cssClass: "column-group column-border-left column-border-right",
+                    columns: [
+                        { title: "<i>COID Name</i>", field: "coid_name", width: 350, headerFilter: true },
+                        { title: "<i>Group</i>", field: "group_name", width: 200, headerFilter: true },
+                        { title: "<i>Division</i>", field: "division_name", width: 250, headerFilter: true },
+                        { title: "<i>Market</i>", field: "market_name", width: 300, headerFilter: true },
+                        { title: "<i>Unit #</i>", field: "unit_num", width: 80, headerFilter: true },
+                        { title: "<i>Network</br>Mnemonic</i>", field: "network_mnemonic", width: 130, headerFilter: true },
+                        { title: "<i>Facility</br>Mnemonic</i>", field: "facility_mnemonic", width: 130, headerFilter: true },
+                        { title: "<i>Facility OID</i>", field: "facility_oid", width: 250, headerFilter: true },
+                        { title: "<i>Facility NPI</i>", field: "facility_npi", width: 120, headerFilter: true }
+                    ]
+                }
+            ],
+        });
+
+        table.setSort([
+            { column: "site_code", dir: "asc" }
+        ]);
+    </script>
+
+</body>
+<script src="./js/neutron.js"></script>
+
+</html>

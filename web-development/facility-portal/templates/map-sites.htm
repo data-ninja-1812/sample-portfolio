@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Facility Master Portal</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta charset="utf-8">
+
+
+    <link href="static/css/neutron.css" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/map.css" />
+
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="static/css/leaflet-sidebar.css" />
+    <link rel="stylesheet" href="static/css/leaflet-search.mod.css" />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+        integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+        crossorigin="" />
+
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+        integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+        crossorigin=""></script>
+
+    <!-- Required for ESRI Layers -->
+    <script src="https://unpkg.com/esri-leaflet@2.3.3/dist/esri-leaflet.js"
+        integrity="sha512-cMQ5e58BDuu1pr9BQ/eGRn6HaR6Olh0ofcHFWe5XesdCITVuSBiBZZbhCijBe5ya238f/zMMRYIMIIg1jxv4sQ=="
+        crossorigin=""></script>
+
+    <script src="static/js/leaflet-search.min.js"></script>
+
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        #map {
+            position: fixed;
+            top: 3.75rem;
+            bottom: 0px;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id='home'>
+        <!-- TOPNAV BEGIN -->
+        <nav class="neu-topnav" role="navigation">
+            <div class="neu-topnav__compact">
+                <p class="neu-text--product">Facility Master</p>
+                <!-- Tab Links -->
+                <ul class="neu-tablist neu-margin--left-30">
+                    <li class="neu-tablist__tab neu-tablist__tab--dark  neu-tablist__tab--dark-active" role="tab"
+                        aria-selected="false" aria-controls="panel-name1" id="tab-name1">
+                        <span><a href="#">Site Map</a></span>
+                    </li>
+                    <li class="neu-tablist__tab neu-tablist__tab--dark" role="tab" aria-selected="false"
+                        aria-controls="panel-name2" id="tab-name2">
+                        <span><a href="/?site=dataSites">Site Data</a></span>
+                    </li>
+                    <li class="neu-tablist__tab neu-tablist__tab--dark" role="tab" aria-selected="false"
+                        aria-controls="panel-name1" id="tab-name1">
+                        <span><a href="/?site=dataUnits">Unit Data</a></span>
+                    </li>
+                    <li class="neu-tablist__tab neu-tablist__tab--dark" role="tab" aria-selected="false"
+                        aria-controls="panel-name3" id="tab-name3">
+                        <span><a href="https://alation.medcity.net/article/117/edg-facility-master"
+                                target="_blank">Documentation</a></span>
+                    </li>
+                    <li class="neu-tablist__tab neu-tablist__tab--dark" role="tab" aria-selected="false"
+                        aria-controls="panel-name4" id="tab-name4">
+                        <span><a href="http://xrdcwpwebrdm01a.hca.corpad.net:8080/rdmFACILITY/"
+                                target="_blank">Admin</a></span>
+                    </li>
+
+                </ul>
+                <!-- End Tabs -->
+                <!-- User Controls -->
+                <div class="neu-user-controls neu-margin--left-auto">
+                    <span class="neu-text--white neu-margin--left-20">
+                        <a href="/logout">Logout ({{ username }})</a>
+                    </span>
+                </div>
+            </div>
+        </nav>
+        <!-- TOPNAV END -->
+
+        <!-- Leaflet Side Bar -->
+        <div id="sidebar" class="sidebar collapsed" style="top: 80px; bottom:30px">
+            <!-- Nav tabs -->
+            <div class="sidebar-tabs">
+                <ul role="tablist">
+                    <li><a href="#info" role="tab"><i class="fa fa-info"></i></a></li>
+                    <!--
+                    <li class="disabled"><a href="#profile" role="tab"><i class="fa fa-user"></i></a></li>
+                    <li class="disabled"><a href="#messages" role="tab"><i class="fa fa-envelope"></i></a></li>
+                    -->
+                </ul>
+
+                <!--
+                <ul role="tablist">
+                    <li><a href="#settings" role="tab"><i class="fa fa-gear"></i></a></li>
+                </ul>
+                -->
+
+            </div>
+
+            <!-- Tab panes -->
+            <div class="sidebar-content">
+                <div class="sidebar-pane" id="info">
+                    <h1 class="sidebar-header">Facility Info<span class="sidebar-close"><i
+                                class="fa fa-caret-left"></i></span></h1>
+                    <div id="sidebar-info-text"></div>
+                    <!-- <div id="sidebar-report-issue"><br><a href="mailto:CORP.FacilityMaster@HCAHealthcare.com?subject=Facility Master - Report Issue">Report Issue</a></div> -->
+                </div>
+
+                <!--
+                <div class="sidebar-pane" id="profile">
+                    <h1 class="sidebar-header">Profile<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+                </div>
+
+                <div class="sidebar-pane" id="messages">
+                    <h1 class="sidebar-header">Messages<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+                </div>
+
+                <div class="sidebar-pane" id="settings">
+                    <h1 class="sidebar-header">Settings<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+                </div>
+                -->
+
+            </div>
+        </div>
+
+        <!-- Leaflet Map-->
+
+        <div id="map" class="sidebar-map"></div>
+
+    </div>
+
+    <script src="static/js/leaflet-sidebar.min.js"></script>
+
+    <script>
+
+        var server_address = location.origin;
+
+        // Get Location Data
+
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("GET", server_address + "/api/sites/", false);
+        xhttp.send();
+        var response = JSON.parse(xhttp.responseText);
+
+        markers = response;
+
+        // Create Layers
+        // Layer 0 = Hospitals
+        // Layer 1 = FSERs
+        // Layer 2 = ASCs
+        // Layer 3 = Urgent Cares
+
+        var mapLayers = []
+
+        mapLayers.push(L.layerGroup())
+        mapLayers.push(L.layerGroup())
+        mapLayers.push(L.layerGroup())
+        mapLayers.push(L.layerGroup())
+
+        // Create Map
+
+        var map = L.map('map', {
+            center: [37, -97],
+            zoom: 5,
+            layers: mapLayers,
+            zoomControl: false
+        });
+
+        // Add in Base Map
+
+        var esri_street = L.esri.basemapLayer('Streets');  // Demonstration Only
+
+        var esri_grey = L.esri.basemapLayer('Gray');  // Demonstration Only
+
+        var esri_image = L.esri.basemapLayer('Imagery');  // Demonstration Only
+
+        var osm_street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            subdomains: ['a', 'b', 'c']
+        }).addTo(map);
+
+        var baseMaps = {
+            "OpenSteetMaps": osm_street,
+            "ESRI - Street": esri_street,
+            "ESRI - Grey": esri_grey,
+            "ESRI - Satellite": esri_image
+        }
+
+        // Add in NOAA Radar Layer
+
+        var wmsUrl_radar = "https://nowcoast.noaa.gov/arcgis/services/nowcoast/radar_meteo_imagery_nexrad_time/MapServer/WMSServer";
+
+        var radarWMS = L.tileLayer.wms(wmsUrl_radar, {
+            layers: '1',
+            format: 'image/png',
+            transparent: true,
+            opacity: 0.8,
+            attribution: 'nowCOAST'
+        });
+
+        radarWMS.addTo(map);
+
+        // Add in NOAA Cyclone Layer
+
+        var wmsUrl_cyclone = "https://nowcoast.noaa.gov/arcgis/services/nowcoast/wwa_meteocean_tropicalcyclones_trackintensityfcsts_time/MapServer/WMSServer";
+        var cycloneWMS = L.tileLayer.wms(wmsUrl_cyclone, {
+            layers: '3,4,5,6,2,8,9',
+            format: 'image/png',
+            transparent: true,
+            opacity: 0.8,
+            attribution: 'nowCOAST'
+        });
+
+        cycloneWMS.addTo(map);
+
+        // Create Some Color Markers
+
+        var markerIcon = L.Icon.extend({
+            options: {
+                shadowUrl: 'static/img/marker-shadow.png',
+                iconSize: [25, 41],
+                shadowSize: [25, 41],
+                iconAnchor: [13, 41],
+                shadowAnchor: [8, 41],
+                popupAnchor: [0, -30]
+            }
+        });
+
+        var stdIcon = []
+        stdIcon.push(new markerIcon({ iconUrl: 'static/img/marker-icon-denim.png' }));
+        stdIcon.push(new markerIcon({ iconUrl: 'static/img/marker-icon-americanrose.png' }));
+        stdIcon.push(new markerIcon({ iconUrl: 'static/img/marker-icon-slate.png' }));
+        stdIcon.push(new markerIcon({ iconUrl: 'static/img/marker-icon-hcaorange.png' }));
+
+        // Load In Locations
+
+        for (var i = 0; i < markers.length; ++i) {
+
+            //Build Popup Content
+            var popup_content = ''
+            popup_content += '<div style="text-align: center;">'
+            popup_content += '<h1 style="font-size: 1.5em;">' + markers[i].site_name + '</h1>'
+            popup_content += '</div>'
+
+            // Determine Layer Number
+            // Works for now
+            var layer_id = parseInt(markers[i].site_code.substring(3, 4)) - 1;
+
+            //Publish Marker
+            try {
+                L.marker([markers[i].geographic_latitude, markers[i].geographic_longitude], { myCustomId: i, site_code: markers[i].site_code, site_name: markers[i].site_name, icon: stdIcon[layer_id] })
+                    .on('click', markerOnClick)
+                    .on('popupclose', markerOffClick)
+                    .bindPopup(popup_content)
+                    .addTo(map)
+                    .addTo(mapLayers[layer_id]);
+            }
+            catch (err) {
+                console.log("Error at: " + i);
+            }
+        }
+
+        // Add in Zoom Controls
+
+        new L.Control.Zoom({ position: 'bottomright' }).addTo(map);
+
+        // Add in Sidebar Controls
+
+        var sidebar = L.control.sidebar('sidebar').addTo(map);
+
+        // Add in Layer Controls
+
+        var overlayMaps = {
+            "<img src='../static/img/marker-icon-denim.png' style='width: 13px; height: 20px; vertical-align: middle;'>&nbsp;&nbsp;Hospitals": mapLayers[0],
+            "<img src='../static/img/marker-icon-americanrose.png' style='width: 13px; height: 20px; vertical-align: middle;'>&nbsp;&nbsp;Free Standing ERs": mapLayers[1],
+            "<img src='../static/img/marker-icon-slate.png' style='width: 13px; height: 20px; vertical-align: middle;'>&nbsp;&nbsp;Surgery Centers": mapLayers[2],
+            "<img src='../static/img/marker-icon-hcaorange.png' style='width: 13px; height: 20px; vertical-align: middle;'>&nbsp;&nbsp;Urgent Care Centers": mapLayers[3],
+            "NOAA Radar": radarWMS,
+            "NOAA Hurricanes": cycloneWMS
+        };
+
+        L.control.layers(baseMaps, overlayMaps, { position: 'topright', collapsed: false }).addTo(map);
+
+        map.removeLayer(radarWMS); // Hide Radar to start
+        map.removeLayer(cycloneWMS); // Hide Radar to start
+
+        // Add in Search Feature
+
+        var controlSearch = new L.Control.Search({
+            position: 'topright',
+            layer: L.featureGroup(mapLayers),
+            propertyName: 'site_name',
+            initial: false,
+            zoom: 12,
+            marker: false,
+            collapsed: false
+        })
+            .on('search:locationfound', function (e) {
+                var marker = e.layer;
+                marker.fire('click');
+            }
+            );
+
+        map.addControl(controlSearch);
+
+        // Various Functions
+
+        function replacenull(x) {
+            var y = ''
+            if (x == null) { return y }
+            else { return x }
+        };
+
+        function markerOnClick(e) {
+            i = this.options.myCustomId
+            d = markers[i]
+
+            document.getElementById('sidebar-info-text').innerHTML = '';
+
+            // Site Name
+            document.getElementById('sidebar-info-text').innerHTML += '<div class="sidebar-text-header sidebar-style-block">'
+                + replacenull(d.site_name) + '</div>';
+
+            // Street Address 1
+            document.getElementById('sidebar-info-text').innerHTML += '<div class="sidebar-text-subheader sidebar-style-start">'
+                + replacenull(d.street_addr_1) + '</div>';
+
+            // Street Address 2 if applicable
+            if (d.street_addr_2 != '') {
+                document.getElementById('sidebar-info-text').innerHTML += '<div class="sidebar-text-subheader sidebar-style-normal">'
+                    + replacenull(d.street_addr_2) + '</div>';
+            }
+
+            // City, State  Postal
+            document.getElementById('sidebar-info-text').innerHTML += '<div class="sidebar-text-subheader sidebar-style-normal">'
+                + replacenull(d.city) + ', ' + replacenull(d.state_code) + '  ' + replacenull(d.postal_code) + '</div>';
+
+            // County
+            document.getElementById('sidebar-info-text').innerHTML += '<div class="sidebar-text-subheader sidebar-style-end">'
+                + replacenull(d.county) + '</div>';
+
+            // Site Code
+            document.getElementById('sidebar-info-text').innerHTML += '<div class="sidebar-text-normal sidebar-style-start">'
+                + '<table width="100%"><tr><td width="30%">Site Code</td><td width="70%">' + replacenull(d.site_code) + '</td></tr></table></div>';
+
+            // Site Type
+            document.getElementById('sidebar-info-text').innerHTML += '<div class="sidebar-text-normal sidebar-style-normal">'
+                + '<table width="100%"><tr><td width="30%">Site Type</td><td width="70%">' + replacenull(d.purpose_type_name) + '</td></tr></table></div>';
+
+            // Short Name
+            document.getElementById('sidebar-info-text').innerHTML += '<div class="sidebar-text-normal sidebar-style-normal">'
+                + '<table width="100%"><tr><td width="30%">Short Name</td><td width="70%">' + replacenull(d.site_short_name) + '</td></tr></table></div>';
+
+            // Operating Status
+            document.getElementById('sidebar-info-text').innerHTML += '<div class="sidebar-text-normal sidebar-style-normal">'
+                + '<table width="100%"><tr><td width="30%">Operating Status</td><td width="70%">' + replacenull(d.operating_status_name) + '</td></tr></table></div>';
+
+            // Lat/Long
+            document.getElementById('sidebar-info-text').innerHTML += '<div class="sidebar-text-normal sidebar-style-normal">'
+                + '<table width="100%"><tr><td width="30%">Lat/Lon</td><td width="70%">' + replacenull(d.geographic_latitude) + ', ' + replacenull(d.geographic_longitude) + '</td></tr></table></div>';
+
+            // Timezone
+            document.getElementById('sidebar-info-text').innerHTML += '<div class="sidebar-text-normal sidebar-style-normal">'
+                + '<table width="100%"><tr><td width="30%">Timezone</td><td width="70%">' + replacenull(d.time_zone_name) + '</td></tr></table></div>';
+
+            // COID
+            document.getElementById('sidebar-info-text').innerHTML += '<div class="sidebar-text-normal sidebar-style-normal">'
+                + '<table width="100%"><tr><td width="30%" style="font-style: italic; !important">COID</td><td width="70%">' + replacenull(d.coid) + '</td></tr></table></div>';
+
+            // COID Name
+            document.getElementById('sidebar-info-text').innerHTML += '<div class="sidebar-text-normal sidebar-style-normal">'
+                + '<table width="100%"><tr><td width="30%" style="font-style: italic; !important">COID Name</td><td width="70%">' + replacenull(d.coid_name) + '</td></tr></table></div>';
+
+            // Group
+            document.getElementById('sidebar-info-text').innerHTML += '<div class="sidebar-text-normal sidebar-style-normal">'
+                + '<table width="100%"><tr><td width="30%" style="font-style: italic; !important">Group</td><td width="70%">' + replacenull(d.group_name) + '</td></tr></table></div>';
+
+            // Division
+            document.getElementById('sidebar-info-text').innerHTML += '<div class="sidebar-text-normal sidebar-style-normal">'
+                + '<table width="100%"><tr><td width="30%" style="font-style: italic; !important">Division</td><td width="70%">' + replacenull(d.division_name) + '</td></tr></table></div>';
+
+            // Market
+            document.getElementById('sidebar-info-text').innerHTML += '<div class="sidebar-text-normal sidebar-style-normal">'
+                + '<table width="100%"><tr><td width="30%" style="font-style: italic; !important">Market</td><td width="70%">' + replacenull(d.market_name) + '</td></tr></table></div>';
+
+            // Report Issue
+            document.getElementById('sidebar-info-text').innerHTML += '<div class="sidebar-report-issue">'
+                + '<a href="mailto:CORP.FacilityMaster@HCAHealthcare.com?subject=Facility Master - Report Issue - Site ' + replacenull(d.site_code) + '">Report Issue</a>'
+
+            sidebar.open('info')
+        }
+
+        function markerOffClick(e) {
+            i = this.options.myCustomId
+            document.getElementById('sidebar-info-text').innerHTML = '';
+            sidebar.close()
+        }
+
+    </script>
+
+</body>
+
+<script src="./js/neutron.js"></script>
+
+</html>

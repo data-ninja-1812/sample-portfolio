@@ -1,0 +1,21 @@
+Package list
+
+Python Version = 3.6
+
+::BASE PACKAGES::
+os
+base64
+argparse
+subprocess
+datetime
+time
+
+::INSTALL::
+conda install pandas
+conda insatll sqlalchemy
+conda install psycopg2
+pip install pymssql
+pip install teradatasql
+
+
+

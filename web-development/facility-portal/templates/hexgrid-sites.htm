@@ -1,0 +1,209 @@
+<HTML>
+
+<head>
+    <title>Facility Master Portal</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta charset="utf-8">
+
+    <link href="static/css/neutron.css" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/map.css" />
+
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin="" />
+
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        #map {
+            position: fixed;
+            top: 3.75rem;
+            bottom: 0px;
+            width: 100%;
+        }
+
+        .ticker {
+            position: fixed;
+            top: 4.0rem;
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255, 255, 255, 1.0);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            left: 50%;
+            transform: translate(-50%, 0%);
+        }
+
+        .ticker h4 {
+            margin: 0 0 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id='home'>
+        <!-- TOPNAV BEGIN -->
+        <nav class="neu-topnav" role="navigation">
+            <div class="neu-topnav__compact">
+                <p class="neu-text--product">Facility Master</p>
+                <!-- User Controls -->
+                <div class="neu-user-controls neu-margin--left-auto">
+                    <span class="neu-text--white neu-margin--left-20">
+                        <a href="/logout">Logout ({{ username }})</a>
+                    </span>
+                </div>
+            </div>
+        </nav>
+        <!-- TOPNAV END -->
+
+        <div id="map"></div>
+        <div id="notice" class="ticker">
+            <center>
+                <h4>MedSurg Bed Capacity Dashboard Example</h4>
+                <span>Source(s): Facility Master, NATE</span><br><br>
+                <span>!! Experimental and development purposes only !!</span>
+            </center>
+        </div>
+</body>
+
+<!-- Make sure you put this AFTER Leaflet's CSS -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
+
+<!-- Required for ESRI Layers -->
+<script src="https://unpkg.com/esri-leaflet@2.3.3/dist/esri-leaflet.js"
+    integrity="sha512-cMQ5e58BDuu1pr9BQ/eGRn6HaR6Olh0ofcHFWe5XesdCITVuSBiBZZbhCijBe5ya238f/zMMRYIMIIg1jxv4sQ=="
+    crossorigin=""></script>
+
+<script src="static/js/d3.v5.min.js"></script>
+<script src="static/js/d3-hexbin.min.js"></script>
+<script src="static/js/hex-coordinate-worker.js"></script>
+
+<script>
+    let geoData = []
+    let signalData = []
+    let t = []
+
+    var mymap = L.map('map', {
+        center: [37, -97],
+        zoom: 5,
+        //layers: mapLayers,
+        zoomControl: false
+    });
+
+    var osm_street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        subdomains: ['a', 'b', 'c']
+    }).addTo(mymap);
+
+    var esri_street = L.esri.basemapLayer('Streets');  // Demonstration Only
+
+    var esri_grey = L.esri.basemapLayer('Gray');  // Demonstration Only
+
+    var baseMaps = {
+        "OpenSteetMaps": osm_street,
+        "ESRI - Street": esri_street,
+        "ESRI - Grey": esri_grey
+    }
+
+    L.control.layers(baseMaps, [], { position: 'topright', collapsed: false }).addTo(mymap);
+
+    function addPoints() {
+
+        geoData.forEach(l => {
+            var circle = L.circle([l.hexCoordinates.lat, l.hexCoordinates.lng], {
+                color: l.color,
+                fillColor: l.color,
+                fillOpacity: 0.5,
+                radius: 10000
+            })
+                .bindPopup(`<Center>${l.coid}<p>${l.name}<p>${l.metric.toFixed(1)}% MedSurg Beds Full</Center>`)
+                .addTo(mymap);
+        })
+    }
+
+    function loadSites() {
+        fetch(location.origin + "/sites/")
+            .then(response => { return response.json(); })
+            .then(data => processSites(data.data))
+    }
+
+    function processSites(data) {
+        d = data;
+        d = d.filter(s => s.site_code.startsWith("S001") && s.site_code === s.parent_site_code && s.operating_status_code === "OPEN");
+        d = d.map((s) => { return { "id": s.site_code, "coid": s.coid, "name": s.coid_name, "lat": s.geographic_latitude, "lng": s.geographic_longitude } })
+        geoData = calculateHexLocations(d);
+        loadSignal();
+    }
+
+    function loadSignal() {
+        fetch("https://nate-api-np.medcity.net/api/covid/nate",
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    authorization: 'key Wv6ia3FRzl7ofNibI0g+lgNI7VrQyCSTSZELgY6d3Asns0NS0t66IdaGw3gR7wJg',
+                }
+            }
+        )
+            .then(response => { return response.json(); })
+            .then(data => processSignal(data))
+    }
+
+    function processSignal(data) {
+        signalData = data;
+
+        // Generate metric
+        signalData.forEach((e, i) => {
+            if (e.icuBeds > 0) {
+                signalData[i]['metric'] = e.medSurgPatients / e.medSurgBeds * 100
+            } else {
+                signalData[i]['metric'] = -1
+            }
+        })
+
+        // Transfer metrics to geoData
+        geoData.forEach((e, i) => {
+            j = signalData.findIndex((s) => s.coid === e.coid)
+            if (signalData[j]) {
+                geoData[i]['metric'] = signalData[j].metric
+            } else {
+                geoData[i]['metric'] = -1
+            }
+        })
+
+        // Assign color based on metric
+        geoData.forEach((e, i) => {
+            if (e.metric >= 90) {
+                geoData[i]['color'] = '#FF0000'
+            } else if (e.metric >= 80) {
+                geoData[i]['color'] = '#FF9900'
+            } else if (e.metric >= 0) {
+                geoData[i]['color'] = '#008000'
+            } else {
+                geoData[i]['color'] = '#C0C0C0'
+            }
+
+            addPoints();
+        })
+    }
+
+    loadSites();
+
+
+</script>
+
+</HTML>
